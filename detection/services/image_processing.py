@@ -4,7 +4,7 @@ import cloudinary.uploader
 from django.conf import settings
 
 # Configure your FastAPI endpoint - this would be the ngrok URL from Colab
-FASTAPI_ENDPOINT = getattr(settings, 'FASTAPI_ENDPOINT', 'https://77df-104-196-44-117.ngrok-free.app')
+FASTAPI_ENDPOINT = getattr(settings, 'FASTAPI_ENDPOINT', 'https://716a-104-196-44-117.ngrok-free.app')
 
 
 def download_image(url, save_path="temp_pothole.jpg"):
