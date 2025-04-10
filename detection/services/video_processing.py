@@ -24,7 +24,7 @@ def process_video(cloudinary_video_url):
 
     try:
         payload = {"video_url": cloudinary_video_url}
-        response = requests.post(f"{FASTAPI_ENDPOINT}/process-video/", json=payload)
+        response = requests.post(f"{FASTAPI_ENDPOINT}/process-video/", files=payload)
         response.raise_for_status()
         result = response.json()
 
