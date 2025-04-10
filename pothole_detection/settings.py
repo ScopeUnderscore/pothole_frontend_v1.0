@@ -162,5 +162,5 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# FastAPI server endpoint (update this when you get the ngrok URL)
-FASTAPI_ENDPOINT = "https://c404-34-105-3-144.ngrok-free.app"
+# FastAPI server endpoint 
+FASTAPI_ENDPOINT = "https://a8d8-104-196-44-117.ngrok-free.app"
