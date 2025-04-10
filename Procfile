@@ -1,0 +1,1 @@
+web: gunicorn pothole_detection.wsgi --log-file -
