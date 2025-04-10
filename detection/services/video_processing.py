@@ -10,7 +10,7 @@ import requests
 from django.conf import settings
 
 # FastAPI endpoint from settings or fallback
-FASTAPI_ENDPOINT = getattr(settings, "FASTAPI_ENDPOINT", "https://84f5-104-196-44-117.ngrok-free.app")
+FASTAPI_ENDPOINT = getattr(settings, "FASTAPI_ENDPOINT", "https://e8c7-104-196-44-117.ngrok-free.app")
 
 
 def process_video(cloudinary_video_url):

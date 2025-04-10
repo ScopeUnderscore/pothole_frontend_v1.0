@@ -1,4 +1,5 @@
 import os
+import requests
 import cloudinary.uploader
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -46,6 +47,8 @@ class PotholeDetectionView(APIView):
         # **Video Processing**
         elif file_ext in [".mp4", ".avi", ".mov"]:
             print("Video Upload Detected")  # Debugging
+            
+            #upload to cloudinary
             upload_result = cloudinary.uploader.upload(
                 file_obj, resource_type="video", folder="pothole_videos"
             )
@@ -54,20 +57,44 @@ class PotholeDetectionView(APIView):
 
             if not video_url:
                 return JsonResponse({"error": "Failed to upload video"}, status=500)
+            
 
-            # Process video using Cloudinary URL
-            video_result = process_video(video_url)
-            print(f" Video Processing Result: {video_result}")
-
-            return JsonResponse(
-                {
-                    "severity": video_result.get("average_severity", 0),
-                    "video_url": video_result.get("video_url", video_url),
+            #  Send Cloudinary URL to your FastAPI backend
+         
+            try:
+                video_result = process_video(video_url)
+                
+                print(f"Video Processing Result: {video_result}")
+                
+                return JsonResponse(
+                    {"severity": video_result.get("damage_percentage", 0),
+                    "video_url": video_result.get("processed_video_path", video_url),
                     "objects": "Potholes"
-                    if video_result.get("average_severity", 0) > 0
-                    else "No pothole detected",
-                }
-            )
+                    if video_result.get("damage_percentage", 0) > 0
+                    else "No pothole detected",}
+                )
+            except Exception as e:
+                print(f"Error processing video: {e}")
+                return JsonResponse({"error": "Video processing failed"}, status=500)
+
+                    
+            
+            
+            
+            
+            
+            # video_result = process_video(video_url)
+            # print(f" Video Processing Result: {video_result}")
+
+            # return JsonResponse(
+            #     {
+            #         "severity": video_result.get("average_severity", 0),
+            #         "video_url": video_result.get("video_url", video_url),
+            #         "objects": "Potholes"
+            #         if video_result.get("average_severity", 0) > 0
+            #         else "No pothole detected",
+            #     }
+            # )
 
         else:
             print("Unsupported File Format")
