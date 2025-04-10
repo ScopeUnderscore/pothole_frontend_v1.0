@@ -7,7 +7,7 @@ from django.conf import settings
 from urllib.parse import urlparse
 
 # Configure your FastAPI endpoint
-FASTAPI_ENDPOINT = getattr(settings, "FASTAPI_ENDPOINT", "https://a8d8-104-196-44-117.ngrok-free.app")
+FASTAPI_ENDPOINT = getattr(settings, "FASTAPI_ENDPOINT", "https://3258-104-196-44-117.ngrok-free.app")
 
 
 def process_video(video_source):

@@ -163,4 +163,4 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # FastAPI server endpoint 
-FASTAPI_ENDPOINT = "https://a8d8-104-196-44-117.ngrok-free.app"
+FASTAPI_ENDPOINT = "https://3258-104-196-44-117.ngrok-free.app"
