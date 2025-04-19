@@ -30,6 +30,7 @@ media
 # Virtual Environment
 venv/
 ENV/
+pothole_front_env/
 
 # Environment variables
 .env
@@ -42,3 +43,5 @@ ENV/
 poth-hole-complete.html
 model_s/
 .DS_Store
+
+staticfiles/
