@@ -1,247 +1,233 @@
 $(document).ready(function () {
-    // Ensure SweetAlert is working
+    // Ensure SweetAlert is loaded
     if (typeof Swal === "undefined") {
         alert("SweetAlert not loaded. Ensure you have included the CDN.");
     }
 
-    // Trigger file input when "Browse Files" button is clicked
-    $(".browse-files-btn").click(function () {
+    // Initialize DOM elements
+    const fileInput = $('#fileInput');
+    const uploadArea = $('.upload-area');
+    const browseBtn = $('.browse-files-btn');
+    const analyzeBtn = $('.analyze-btn');
+    const preview = $('.upload-preview');
+    const resultMsg = $('.results-message');
+    const spinner = $('#loading-spinner');
+    const uploadText = $('.upload-text');
+    const uploadIcon = $('.upload-icon');
+    const uploadSubtext = $('.upload-subtext');
+    let selectedFile = null;
+    let resizedImageFile = null;
+
+    browseBtn.click(function () {
         $("input[type='file']").click();
     });
 
-    // Handle file selection
-    $("input[type='file']").change(function () {
-        let file = this.files[0]; // Get selected file
-        let fileName = file ? file.name : "";
-        let fileType = file ? file.type : "";
-
-        // Show the file name
-        $(".upload-text").text(fileName ? `Selected: ${fileName}` : "Drag and drop your file here");
-
-        // Hide upload icon and text when a file is selected
-        $(".upload-icon, .upload-text, .upload-subtext").hide();
-
-         // Show selected file name
-        $(".upload-preview").html(`<p class="file-name"><strong>Selected:</strong> ${fileName}</p>`);
-
-
-        // Validate file type
-        if (!fileType.startsWith("image/") && !fileType.startsWith("video/")) {
-            Swal.fire({
-                icon: "error",
-                title: "Invalid File Format",
-                text: "Please upload an image or video file only.",
-            });
-            $(this).val(""); // Clear invalid file
-            $(".upload-text").text("Drag and drop your file here");
-            return;
-        }
-        // Update the Analyze button text based on the file type
-        if (fileType.startsWith("image/")) {
-            $(".analyze-btn").text("Analyse Image");
-        } else if (fileType.startsWith("video/")) {
-            $(".analyze-btn").text("Analyse Video");
-        }
-
-
-        // If file is an image, resize and display it
-        if (fileType.startsWith("image/")) {
-            let reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (event) {
-                let img = new Image();
-                img.src = event.target.result;
-                img.onload = function () {
-                    let canvas = document.createElement("canvas");
-                    let ctx = canvas.getContext("2d");
-
-                    // Set size while maintaining aspect ratio
-                    canvas.width = 640;
-                    canvas.height = 640;
-
-                    let aspect = img.width / img.height;
-                    let newWidth = aspect > 1 ? 640 : 640 * aspect;
-                    let newHeight = aspect > 1 ? 640 / aspect : 640;
-
-                    let offsetX = (640 - newWidth) / 2;
-                    let offsetY = (640 - newHeight) / 2;
-                    ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-
-                    canvas.toBlob(function (blob) {
-                        let resizedFile = new File([blob], "resized_" + file.name, {
-                            type: file.type,
-                            lastModified: Date.now(),
-                        });
-
-                        // Create a URL for the resized image
-                        let imageURL = URL.createObjectURL(resizedFile);
-
-                        // Update the preview section with the resized image
-                        $(".upload-preview").html(`
-                            <img src="${imageURL}" class="uploaded-img img-fluid" alt="Resized Image">
-                        `);
-
-                        // Add resized file to FormData
-                        formData.set("file", resizedFile);
-                    }, file.type);
-                };
-            };
-        }
-
-        // If file is a video, display it in the upload section
-        else if (fileType.startsWith("video/")) {
-            let videoURL = URL.createObjectURL(file);
-            $(".upload-preview").html(`
-                <video width="400" controls>
-                    <source src="${videoURL}" type="${fileType}">
-                    Your browser does not support the video tag.
-                </video>
-            `);
-        }
+    uploadArea.on('dragover', function (e) {
+        e.preventDefault();
+        $(this).addClass('dragover');
     });
 
-    // Handle analyze button click
-    $(".analyze-btn").click(function (event) {
-        event.preventDefault();
+    uploadArea.on('dragleave drop', function (e) {
+        e.preventDefault();
+        $(this).removeClass('dragover');
+    });
 
-        let fileInput = $("input[type='file']")[0].files[0];
-        if (!fileInput) {
-            Swal.fire({
-                icon: "warning",
-                title: "No File Selected",
-                text: "Please select an image or video before analyzing.",
-            });
+    uploadArea.on('drop', function (e) {
+        const file = e.originalEvent.dataTransfer.files[0];
+        handleFile(file);
+    });
+
+    fileInput.on('change', function () {
+        const file = this.files[0];
+        handleFile(file);
+    });
+
+    function handleFile(file) {
+        selectedFile = file;
+        preview.empty();
+        resultMsg.empty();
+        resizedImageFile = null;
+
+        if (!file) {
+            resetUI();
             return;
         }
 
-        let fileType = fileInput.type;
-        let formData = new FormData();
-        formData.append("file", fileInput);
+        const fileType = file.type;
+        const fileName = file.name;
 
-        $("#loading-spinner").show();
-        $(".results-message").html("");
-
-        // If the file is an image, resize it before sending to backend
-        if (fileType.startsWith("image/")) {
-            let reader = new FileReader();
-            reader.readAsDataURL(fileInput);
-            reader.onload = function (event) {
-                let img = new Image();
-                img.src = event.target.result;
-                img.onload = function () {
-                    let canvas = document.createElement("canvas");
-                    let ctx = canvas.getContext("2d");
-
-                    // Set size while maintaining aspect ratio
-                    canvas.width = 640;
-                    canvas.height = 640;
-
-                    let aspect = img.width / img.height;
-                    let newWidth = aspect > 1 ? 640 : 640 * aspect;
-                    let newHeight = aspect > 1 ? 640 / aspect : 640;
-
-                    let offsetX = (640 - newWidth) / 2;
-                    let offsetY = (640 - newHeight) / 2;
-                    ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
-
-                    canvas.toBlob(function (blob) {
-                        let resizedFile = new File([blob], "resized_" + fileInput.name, {
-                            type: fileInput.type,
-                            lastModified: Date.now(),
-                        });
-
-                        formData.set("file", resizedFile);
-                        sendFileToBackend(formData, fileType);
-                    }, fileInput.type);
-                };
-            };
-        } else if (fileType.startsWith("video/")) {
-            sendFileToBackend(formData, fileType);
+        if (!fileType.startsWith('image/') && !fileType.startsWith('video/')) {
+            Swal.fire('Unsupported file type', 'Only images and videos are allowed.', 'warning');
+            resetUI();
+            selectedFile = null;
+            return;
         }
-    });
 
-    // Function to send file data to backend via AJAX
-    function sendFileToBackend(formData, fileType) {
-        $.ajax({
-            url: "/api/detect/",
-            type: "POST",
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (response) {
-                $("#loading-spinner").hide();
-                
+        uploadText.text(`Selected: ${fileName}`);
+        uploadIcon.hide();
+        uploadSubtext.hide();
 
-                Swal.fire({
-                    icon: "success",
-                    title: "Analysis Complete",
-                    text: "File processed successfully!",
-                });
+        analyzeBtn.text(fileType.startsWith('image/') ? "Analyze Image" : "Analyze Video");
 
-                // Display analyzed results
-                if (fileType.startsWith("image/")) {
-                    let mediaUrl = response.image_url;
-                    $(".results-message").html(`
-                        <h4>Detection Results:</h4>
-                        <p><strong>Severity:</strong> ${response.severity}%</p>
-                        <p><strong>Objects Detected:</strong> ${response.objects}</p>
-                        <img src="${mediaUrl}" class="analyzed-img img-fluid mt-2" alt="Analyzed Image">
-                    `);
-                } else if (fileType.startsWith("video/")) {
-                    let videoUrl = response.video_url;
-                    $(".results-message").html(`
-                        <h4>Detection Results:</h4>
-                        <p><strong>Severity:</strong> ${response.severity}%</p>
-                        <p><strong>Objects Detected:</strong> ${response.objects}</p>
-                        <video width="400" controls>
-                            <source src="${videoUrl}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    `);
-                }
-            },
-            error: function (xhr, status, error) {
-                $("#loading-spinner").hide();
-
-                // Handle API errors properly
-                let errorMessage = xhr.responseJSON?.error || "An unknown error occurred.";
-
-                Swal.fire({
-                    icon: "error",
-                    title: "Upload Failed",
-                    text: errorMessage,
-                });
-            },
-        });
+        if (fileType.startsWith('image/')) {
+            resizeImage(file);
+        } else {
+            const video = $('<video controls>')
+                .attr('src', URL.createObjectURL(file))
+                .addClass('uploaded-video')
+                .css({ maxWidth: '100%', borderRadius: '8px' });
+            preview.append(video);
+        }
     }
 
-        // // Function to show popup when an image is clicked
-        // function showPopup(imageUrl) {
-        //     let popup = document.getElementById("imagePopup");
-        //     let popupImage = document.getElementById("popupImage");
+    function resetUI() {
+        uploadText.text("Drag and drop your file here");
+        uploadIcon.show();
+        uploadSubtext.show();
+        analyzeBtn.text("Analyze");
+        fileInput.val("");
+    }
 
-        //     popupImage.src = imageUrl;
-        //     popup.style.display = "flex"; // Show the popup
-        // }
+    function resizeImage(file) {
+        const reader = new FileReader();
 
-        // // Function to close the popup when clicking "X"
-        // document.querySelector(".close-popup").addEventListener("click", function() {
-        //     document.getElementById("imagePopup").style.display = "none";
-        // });
+        reader.onload = function (event) {
+            const img = new Image();
+            img.src = event.target.result;
 
-        // // Close popup when clicking outside the image
-        // document.getElementById("imagePopup").addEventListener("click", function(event) {
-        //     if (event.target === this) {
-        //         this.style.display = "none";
-        //     }
-        // });
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-        // // Attach click event to uploaded and analyzed images dynamically
-        // document.addEventListener("click", function(event) {
-        //     if (event.target.classList.contains("uploaded-img") || event.target.classList.contains("analyzed-img")) {
-        //         showPopup(event.target.src);
-        //     }
-        // });
+                const maxSize = 640;
+                let newWidth, newHeight;
+                const aspectRatio = img.width / img.height;
 
-    
+                if (aspectRatio > 1) {
+                    newWidth = maxSize;
+                    newHeight = maxSize / aspectRatio;
+                } else {
+                    newHeight = maxSize;
+                    newWidth = maxSize * aspectRatio;
+                }
+
+                canvas.width = maxSize;
+                canvas.height = maxSize;
+
+                const offsetX = (maxSize - newWidth) / 2;
+                const offsetY = (maxSize - newHeight) / 2;
+
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, offsetX, offsetY, newWidth, newHeight);
+
+                canvas.toBlob(function (blob) {
+                    resizedImageFile = new File([blob], "resized_" + file.name, {
+                        type: file.type,
+                        lastModified: Date.now(),
+                    });
+
+                    const resizedPreview = $('<img>')
+                        .attr('src', URL.createObjectURL(resizedImageFile))
+                        .addClass('img-fluid uploaded-img')
+                        .css({ maxWidth: '100%', borderRadius: '8px' });
+
+                    preview.append(resizedPreview);
+                }, file.type);
+            };
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    analyzeBtn.on('click', function () {
+        if (!selectedFile) {
+            Swal.fire('No file selected', 'Please upload an image or video.', 'info');
+            return;
+        }
+
+        const fileType = selectedFile.type;
+        const formData = new FormData();
+
+        if (fileType.startsWith('image/') && resizedImageFile) {
+            formData.append('file', resizedImageFile);
+        } else {
+            formData.append('file', selectedFile);
+        }
+
+        spinner.show();
+        resultMsg.empty();
+
+        $.ajax({
+            url: '/upload/',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                const { type, image_result, task_id } = response;
+
+                if (type === 'image') {
+                    spinner.hide();
+                    displayImageResults(image_result);
+                } else if (type === 'video') {
+                    checkVideoStatus(task_id);
+                }
+            },
+            error: function (xhr) {
+                spinner.hide();
+                Swal.fire('Upload Failed', xhr.responseText || 'An error occurred while uploading.', 'error');
+            }
+        });
+    });
+
+    function checkVideoStatus(taskId) {
+        const interval = setInterval(() => {
+            $.get(`/video-status/${taskId}`, function (response) {
+                if (response.status === 'PENDING' || response.status === 'PROCESSING') return;
+
+                clearInterval(interval);
+                spinner.hide();
+
+                if (response.status === 'SUCCESS') {
+                    displayVideoResults(response.result);
+                } else {
+                    Swal.fire('Processing Failed', 'Something went wrong with the video processing.', 'error');
+                }
+            }).fail(() => {
+                clearInterval(interval);
+                spinner.hide();
+                Swal.fire('Error', 'Failed to check task status.', 'error');
+            });
+        }, 3000);
+    }
+
+    function displayImageResults(data) {
+        const { severity, pothole_percentage, image_url, potholes_detected } = data;
+
+        const detectionText = potholes_detected > 0 ? `${potholes_detected} potholes detected.` : 'No potholes detected.';
+        // const severityText = `Severity: ${severity.toFixed(2)}%`;
+        const percentageText = `Pothole Area: ${pothole_percentage.toFixed(2)}%`;
+
+        // <p><strong>${severityText}</strong></p>
+
+        resultMsg.html(`
+            <p><strong>${detectionText}</strong></p>
+            <p><strong>${percentageText}</strong></p>
+            <img src="${image_url}" class="img-fluid analyzed-img mt-2" alt="Analyzed Image">
+        `);
+    }
+
+    function displayVideoResults(data) {
+        const { average_severity, damaged_road_percentage, video_url, total_potholes_detected } = data;
+        // <p><strong>Total Potholes:</strong> ${total_potholes_detected}</p>
+        // <p><strong>Avg Severity:</strong> ${average_severity}%</p>
+        resultMsg.html(`
+            <p><strong>Damaged Road:</strong> ${damaged_road_percentage}%</p>
+            <video controls class="analyzed-video" style="max-width:100%; border-radius: 8px;">
+                <source src="${video_url}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        `);
+    }
 });

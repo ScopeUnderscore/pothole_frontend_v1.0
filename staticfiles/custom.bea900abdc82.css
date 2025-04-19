@@ -1,0 +1,353 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+body {
+    line-height: 1.6;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header styles */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1a56db;
+    text-decoration: none;
+}
+
+nav ul {
+    display: flex;
+    list-style: none;
+}
+
+nav ul li {
+    margin-left: 2rem;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #4b5563;
+    transition: color 0.3s;
+}
+
+nav ul li a:hover {
+    color: #1a56db;
+}
+
+nav ul li a.active {
+    color: #1a56db;
+    border-bottom: 2px solid #1a56db;
+    padding-bottom: 4px;
+}
+
+/* Hero section - Full Image */
+.hero {
+    width: 100%;
+    height: 600px;
+    overflow: hidden;
+}
+
+.hero-image {
+    width: 100%;
+    height: 100%;
+}
+
+.hero-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Two-column section */
+.two-column-section {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 4rem auto;
+    padding: 0 3rem;
+    gap: 5rem;
+}
+
+.upload-column, .results-column {
+    flex: 1;
+    min-width: 500px;
+    max-width: 700px;
+    width: 100%;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 3rem;
+}
+
+.upload-column h2, .results-column h2 {
+
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #1f2937;
+    font-size: 1.5rem;
+}
+
+.upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 4rem 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.upload-area:hover, .upload-area.dragover {
+    border-color: #93c5fd;
+    background-color: #f8fafc;
+}
+
+
+
+.upload-icon {
+    background-color: #dbeafe;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.upload-icon svg {
+    width: 24px;
+    height: 24px;
+    color: #3b82f6;
+}
+
+.upload-text {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.upload-subtext {
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+.upload-section-buttons {
+    display: flex;
+    justify-content: center;  /* Centers the buttons */
+    gap: 10px;  /* Adds space between buttons */
+    margin-top: 15px; /* Optional: Adjust as needed */
+}
+
+
+
+.btn {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+}
+
+.btn-secondary {
+    background-color: white;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover {
+    background-color: #f9fafb;
+}
+
+.analyze-btn {
+    display: block;
+    width: 150px;
+    margin: 1.5rem auto;
+    padding: 0.6rem 1rem;
+}
+.browse-files-btn{
+
+    display: block;
+    width: 150px;
+    margin: 1.5rem auto;
+    padding: 0.6rem 1rem;
+}
+
+.results-container {
+    min-height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 2rem;
+}
+
+.results-message {
+    text-align: center;
+    color: #6b7280;
+}
+
+#loading-spinner {
+    display: none;
+    text-align: center;
+    min-height: 50px;
+ 
+}
+
+.spinner {
+    border: 6px solid rgba(0, 0, 0, 0.1);
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;  /* Adds spacing between spinner and text */
+}
+
+/* Footer styles */
+footer {
+    background-color: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    padding: 3rem 5%;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.footer-section {
+    flex: 1;
+    min-width: 200px;
+    margin-bottom: 2rem;
+    padding-right: 2rem;
+}
+
+.footer-section h3 {
+    color: #1f2937;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.footer-section p {
+    color: #6b7280;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.footer-links {
+    list-style: none;
+}
+
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    color: #4b5563;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: #1a56db;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-icon {
+    width: 36px;
+    height: 36px;
+    background-color: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    transition: all 0.3s;
+}
+
+.social-icon:hover {
+    background-color: #1e3a8a;
+    color: white;
+}
+
+.social-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.copyright {
+    text-align: center;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid #e5e7eb;
+    color: #6b7280;
+    font-size: 0.9rem;
+    width: 100%;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .two-column-section {
+        flex-direction: column;
+    }
+    
+    .upload-column, .results-column {
+        width: 100%;
+    }
+    
+    nav ul li {
+        margin-left: 1rem;
+    }
+}

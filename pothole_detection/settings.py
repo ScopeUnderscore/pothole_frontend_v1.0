@@ -16,7 +16,12 @@ import cloudinary
 import cloudinary.uploader
 import cloudinary.api
 from dotenv import load_dotenv
+import warnings
 
+
+
+
+warnings.filterwarnings("ignore", category=Warning)
 
 
 # Load environment variables
@@ -163,4 +168,4 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # FastAPI server endpoint 
-FASTAPI_ENDPOINT = "https://e8c7-104-196-44-117.ngrok-free.app"
+# FASTAPI_ENDPOINT = "https://17dc-34-44-90-93.ngrok-free.app"

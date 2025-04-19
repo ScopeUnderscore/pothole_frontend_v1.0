@@ -1,101 +1,111 @@
-import os
+# detection/views.py
+"""
+Django views for handling file uploads and video processing status.
+Uploads images and videos to Cloudinary and communicates with FastAPI.
+"""
+
 import requests
 import cloudinary.uploader
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser, FormParser
 from django.http import JsonResponse
-from .services.image_processing import predict_pothole
-from .services.video_processing import process_video
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST, require_GET
+import logging
 
-class PotholeDetectionView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+logger = logging.getLogger(__name__)
 
-    def post(self, request, *args, **kwargs):
-        if "file" not in request.FILES:
-            return Response({"error": "No file uploaded"}, status=400)
+@csrf_exempt
+@require_POST
+def upload_file(request):
+    """
+    Handle file uploads (images or videos), store in Cloudinary, and send to FastAPI.
 
-        file_obj = request.FILES["file"]
-        file_name = file_obj.name.replace(" ", "_")  # Remove spaces
-        file_ext = os.path.splitext(file_name)[1].lower()
+    Args:
+        request: HTTP request containing a file in request.FILES['file'].
 
-        # **Image Processing**
-        if file_ext in [".jpg", ".jpeg", ".png"]:
-            print("Image Upload Detected")  # Debugging
-            upload_result = cloudinary.uploader.upload(
-                file_obj, folder="pothole_images"
+    Returns:
+        JsonResponse: For images, returns processing results; for videos, returns task_id.
+    """
+    file = request.FILES.get('file')
+    if not file:
+        logger.error("No file provided in upload request")
+        return JsonResponse({'error': 'No file provided.'}, status=400)
+
+    content_type = file.content_type
+    logger.info(f"Uploading file with content type: {content_type}")
+
+    try:
+        cloudinary_response = cloudinary.uploader.upload(
+            file,
+            resource_type="auto",
+            folder="pothole_detection"
+        )
+        file_url = cloudinary_response['secure_url']
+        logger.info(f"Uploaded file to Cloudinary: {file_url}")
+        #http://34.30.224.189:8000/predict-image/'
+        if content_type.startswith('image/'):
+            fastapi_url = 'http://localhost:8000/predict-image/'
+            api_response = requests.post(
+                fastapi_url,
+                json={'image_url': file_url},
+                timeout=30
             )
-            cloudinary_url = upload_result.get("secure_url", None)
-            print(f"Cloudinary Image URL: {cloudinary_url}")
+            if api_response.status_code == 200:
+                image_result = api_response.json()
+                logger.info("Image processed successfully by FastAPI")
+                return JsonResponse({
+                    'type': 'image',
+                    'image_result': image_result
+                })
+            else:
+                logger.error(f"Image processing failed: {api_response.text}")
+                return JsonResponse({'error': 'Image processing failed on backend.'}, status=500)
 
-            if not cloudinary_url:
-                return JsonResponse({"error": "Failed to upload image"}, status=500)
-
-            # Run pothole detection
-            result = predict_pothole(cloudinary_url)
-            print(f" Detection Result: {result}")
-
-            return JsonResponse(
-                               {
-                    "severity": result.get("severity", 0),
-                    "image_url": result.get("image_url"),  #  returns Cloudinary URL
-                    "objects": "Pothole" if result.get("severity", 0) > 0 else "No pothole",
-                }
-
+        elif content_type.startswith('video/'):
+            fastapi_url = 'http://localhost:8000/process-video/'
+            api_response = requests.post(
+                fastapi_url,
+                json={'video_url': file_url},
+                timeout=30
             )
-
-        # **Video Processing**
-        elif file_ext in [".mp4", ".avi", ".mov"]:
-            print("Video Upload Detected")  # Debugging
-            
-            #upload to cloudinary
-            upload_result = cloudinary.uploader.upload(
-                file_obj, resource_type="video", folder="pothole_videos"
-            )
-            video_url = upload_result.get("secure_url", None)
-            print(f"Cloudinary Video URL: {video_url}")
-
-            if not video_url:
-                return JsonResponse({"error": "Failed to upload video"}, status=500)
-            
-
-            #  Send Cloudinary URL to your FastAPI backend
-         
-            try:
-                video_result = process_video(video_url)
-                
-                print(f"Video Processing Result: {video_result}")
-                
-                return JsonResponse(
-                    {"severity": video_result.get("damage_percentage", 0),
-                    "video_url": video_result.get("processed_video_path", video_url),
-                    "objects": "Potholes"
-                    if video_result.get("damage_percentage", 0) > 0
-                    else "No pothole detected",}
-                )
-            except Exception as e:
-                print(f"Error processing video: {e}")
-                return JsonResponse({"error": "Video processing failed"}, status=500)
-
-                    
-            
-            
-            
-            
-            
-            # video_result = process_video(video_url)
-            # print(f" Video Processing Result: {video_result}")
-
-            # return JsonResponse(
-            #     {
-            #         "severity": video_result.get("average_severity", 0),
-            #         "video_url": video_result.get("video_url", video_url),
-            #         "objects": "Potholes"
-            #         if video_result.get("average_severity", 0) > 0
-            #         else "No pothole detected",
-            #     }
-            # )
-
+            if api_response.status_code == 200:
+                data = api_response.json()
+                task_id = data.get('task_id')
+                logger.info(f"Video processing started, task_id: {task_id}")
+                return JsonResponse({
+                    'type': 'video',
+                    'task_id': task_id
+                })
+            else:
+                logger.error(f"Video processing failed: {api_response.text}")
+                return JsonResponse({'error': 'Video processing failed on backend.'}, status=500)
         else:
-            print("Unsupported File Format")
-            return Response({"error": "Unsupported file format"}, status=400)
+            logger.error(f"Unsupported file type: {content_type}")
+            return JsonResponse({'error': 'Unsupported file type'}, status=400)
+
+    except Exception as e:
+        logger.error(f"Upload failed: {str(e)}")
+        return JsonResponse({'error': f'Upload failed: {str(e)}'}, status=500)
+
+@require_GET
+def video_status(request, task_id):
+    """
+    Retrieve video processing status by proxying to FastAPI.
+
+    Args:
+        request: HTTP GET request.
+        task_id (str): Celery task ID.
+
+    Returns:
+        JsonResponse: Status and results from FastAPI.
+    """
+    logger.info(f"Checking video status for task_id: {task_id}")
+    fastapi_url = f'http://localhost:8000/video-status/{task_id}'
+    try:
+        response = requests.get(fastapi_url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        logger.info(f"Video status retrieved: {data}")
+        return JsonResponse(data)
+    except requests.RequestException as e:
+        logger.error(f"Failed to get video status: {str(e)}")
+        return JsonResponse({'error': f'Failed to get status: {str(e)}'}, status=500)

@@ -10,7 +10,7 @@ import requests
 from django.conf import settings
 
 # FastAPI endpoint from settings or fallback
-FASTAPI_ENDPOINT = getattr(settings, "FASTAPI_ENDPOINT", "https://e8c7-104-196-44-117.ngrok-free.app")
+FASTAPI_ENDPOINT = getattr(settings, "FASTAPI_ENDPOINT", "https://17dc-34-44-90-93.ngrok-free.app")
 
 
 def process_video(cloudinary_video_url):
@@ -23,8 +23,13 @@ def process_video(cloudinary_video_url):
     """
 
     try:
-        payload = {"video_url": cloudinary_video_url}
-        response = requests.post(f"{FASTAPI_ENDPOINT}/process-video/", files=payload)
+        # payload = {"video_url": cloudinary_video_url}
+        response = requests.post(
+        FASTAPI_ENDPOINT,
+        json={"video_url": cloudinary_video_url}, 
+        timeout=60  # Optional, good for long processing
+    )
+        print(f"fastapi endpoint response:{response}")
         response.raise_for_status()
         result = response.json()
 
@@ -66,4 +71,3 @@ def process_video(cloudinary_video_url):
     except Exception as e:
         print(f"Unexpected error: {e}")
         return {"error": f"Video processing failed: {str(e)}"}
-
