@@ -43,7 +43,7 @@ def upload_file(request):
         logger.info(f"Uploaded file to Cloudinary: {file_url}")
         #http://34.30.224.189:8000/predict-image/'
         if content_type.startswith('image/'):
-            fastapi_url = 'http://localhost:8000/predict-image/'
+            fastapi_url = 'http://34.31.170.251:8000/predict-image/'
             api_response = requests.post(
                 fastapi_url,
                 json={'image_url': file_url},
@@ -61,7 +61,7 @@ def upload_file(request):
                 return JsonResponse({'error': 'Image processing failed on backend.'}, status=500)
 
         elif content_type.startswith('video/'):
-            fastapi_url = 'http://localhost:8000/process-video/'
+            fastapi_url = 'http://34.31.170.251:8000/process-video/'
             api_response = requests.post(
                 fastapi_url,
                 json={'video_url': file_url},
@@ -99,7 +99,7 @@ def video_status(request, task_id):
         JsonResponse: Status and results from FastAPI.
     """
     logger.info(f"Checking video status for task_id: {task_id}")
-    fastapi_url = f'http://localhost:8000/video-status/{task_id}'
+    fastapi_url = f'http://34.31.170.251:8000/video-status/{task_id}'
     try:
         response = requests.get(fastapi_url, timeout=5)
         response.raise_for_status()
