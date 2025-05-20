@@ -6,9 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 import logging
 
+
+
 def frontend_home(request):
     return render(request, "index.html")
-# detection/views.py
+
+
+
 """
 Django views for handling file uploads and video processing status.
 Uploads images and videos to Cloudinary and communicates with FastAPI.

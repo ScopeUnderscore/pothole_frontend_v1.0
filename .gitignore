@@ -32,6 +32,7 @@ venv/
 ENV/
 pothole_front_env/
 
+detection/
 # Environment variables
 .env
 
@@ -44,4 +45,3 @@ poth-hole-complete.html
 model_s/
 .DS_Store
 staticfiles/
-detection/
